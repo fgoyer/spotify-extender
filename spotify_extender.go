@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/fgoyer/spotify-extender/playlists"
-
 	"github.com/zmb3/spotify"
 )
 
@@ -17,14 +16,8 @@ var (
 	ch    = make(chan *spotify.Client)
 	state = "search"
 
-	chillhopLofi2020 = GenreSearch{
-		playlistID: "50NWpic870bRbJSwpF9PVB",
-		query:      "year:2020 AND genre:\"chillhop\" AND genre:\"lo-fi beats\"",
-	}
-	chillhopLofi2019 = GenreSearch{
-		playlistID: "1e8Bk00Ah6mrX40giHTpKK",
-		query:      "year:2019 AND genre:\"chillhop\" AND genre:\"lo-fi beats\"",
-	}
+	chillhopLofi2020 = playlists.GenreSearch{PlaylistID: "50NWpic870bRbJSwpF9PVB", Query: "year:2020 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
+	chillhopLofi2019 = playlists.GenreSearch{PlaylistID: "1e8Bk00Ah6mrX40giHTpKK", Query: "year:2019 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
 )
 
 func main() {
@@ -48,20 +41,26 @@ func main() {
 	}
 	log.Println("You are logged in as:", user.DisplayName)
 
+	err = playlists.Compile(chillhopLofi2020, client)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request) {
-	tok, err := auth.Token(state, r)
+	token, err := auth.Token(state, r)
 	if err != nil {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
 		log.Fatal(err)
 	}
+
 	if st := r.FormValue("state"); st != state {
 		http.NotFound(w, r)
 		log.Fatalf("State mismatch: %s != %s\n", st, state)
 	}
+
 	// use the token to get an authenticated client
-	client := auth.NewClient(tok)
+	client := auth.NewClient(token)
 	fmt.Fprintf(w, "Login Completed!")
 	ch <- &client
 }

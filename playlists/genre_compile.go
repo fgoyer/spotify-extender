@@ -8,15 +8,16 @@ import (
 
 // GenreSearch contains the query to search for and playlist ID for where to put the results.
 type GenreSearch struct {
-	playlistID spotify.ID
-	query      string
+	PlaylistID spotify.ID
+	Query      string
 }
 
-func compile(s GenreSearch, ch chan *spotify.Client) error {
-	client := <-ch
+// Compile initiates the given search and places the results in the given playlist.
+func Compile(s GenreSearch, client *spotify.Client) error {
+
 	// search
 	log.Println("Searching...")
-	results, err := client.Search(s.query, spotify.SearchTypeTrack)
+	results, err := client.Search(s.Query, spotify.SearchTypeTrack)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +43,7 @@ func compile(s GenreSearch, ch chan *spotify.Client) error {
 	}
 
 	// Retrieve the tracks currently on the playlist.
-	playlistTracks, err := client.GetPlaylistTracks(s.playlistID)
+	playlistTracks, err := client.GetPlaylistTracks(s.PlaylistID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,7 +77,7 @@ func compile(s GenreSearch, ch chan *spotify.Client) error {
 		for i := len(tracks) - 1; i >= 0; i-- {
 			temp = append(temp, tracks[i])
 			if len(temp) == 100 || i == 0 {
-				snapshot, err := client.AddTracksToPlaylist(s.playlistID, temp...)
+				snapshot, err := client.AddTracksToPlaylist(s.PlaylistID, temp...)
 				if err != nil {
 					log.Fatal(err)
 				}
