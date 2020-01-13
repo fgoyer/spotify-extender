@@ -1,7 +1,6 @@
 package playlists
 
 import (
-
 	"github.com/zmb3/spotify"
 )
 

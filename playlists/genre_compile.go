@@ -19,7 +19,7 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 	log.Println("Searching...")
 	results, err := client.Search(s.Query, spotify.SearchTypeTrack)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	tracks := make([]spotify.ID, 0)
@@ -38,14 +38,14 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 			break
 		}
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
 	// Retrieve the tracks currently on the playlist.
 	playlistTracks, err := client.GetPlaylistTracks(s.PlaylistID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.Printf("Playlist has %d total tracks", playlistTracks.Total)
@@ -62,7 +62,7 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 			break
 		}
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
@@ -79,7 +79,7 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 			if len(temp) == 100 || i == 0 {
 				snapshot, err := client.AddTracksToPlaylist(s.PlaylistID, temp...)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				log.Printf("Added %v tracks to playlist. Snapshot: %v\n", len(temp), snapshot)
 				temp = nil
