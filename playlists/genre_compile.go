@@ -22,14 +22,14 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 		return err
 	}
 
-	tracks := make([]spotify.ID, 0)
+	tracks := make([]spotify.FullTrack, 0)
 	// Traverse the pages of the search results. Spotify returns 20 results per page,
 	// let's enforce a strict 5,000 track (250 page) limit per search.
 	for page := 1; page <= 250; page++ {
 		// handle track results
 		if results.Tracks != nil {
 			for _, item := range results.Tracks.Tracks {
-				tracks = append(tracks, item.ID)
+				tracks = append(tracks, item)
 			}
 		}
 
@@ -43,39 +43,22 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 	}
 
 	// Retrieve the tracks currently on the playlist.
-	playlistTracks, err := client.GetPlaylistTracks(s.PlaylistID)
+	currentTracks, err := getPlaylistTracks(s.PlaylistID, client)
 	if err != nil {
 		return err
 	}
-
-	log.Printf("Playlist has %d total tracks", playlistTracks.Total)
-	currentTracks := make([]spotify.ID, 0)
-	for page := 1; ; page++ {
-		if playlistTracks.Tracks != nil {
-			for _, track := range playlistTracks.Tracks {
-				currentTracks = append(currentTracks, track.Track.ID)
-			}
-		}
-
-		err = client.NextPage(playlistTracks)
-		if err == spotify.ErrNoMorePages {
-			break
-		}
-		if err != nil {
-			return err
-		}
-	}
+	log.Printf("Playlist has %d total tracks", len(currentTracks))
 
 	// Remove any tracks that are already in the playlist
 	tracks = difference(tracks, currentTracks)
 
-	// Push track results to a playlist.
+	// Push track results to a playlist by ID.
 	resultCount := len(tracks)
 	log.Printf("Found %v new tracks\n", resultCount)
 	if resultCount > 0 {
 		var temp []spotify.ID
 		for i := len(tracks) - 1; i >= 0; i-- {
-			temp = append(temp, tracks[i])
+			temp = append(temp, tracks[i].ID)
 			if len(temp) == 100 || i == 0 {
 				snapshot, err := client.AddTracksToPlaylist(s.PlaylistID, temp...)
 				if err != nil {

@@ -6,54 +6,32 @@ import (
 	"github.com/zmb3/spotify"
 )
 
-// Duplicates will remove duplicate tracks from the given playlist.
-func Duplicates(playlistID spotify.ID, client *spotify.Client) error {
+// RemoveDuplicates will remove duplicate tracks from the given playlist.
+func RemoveDuplicates(playlistID spotify.ID, client *spotify.Client) error {
 	// Retrieve the tracks currently on the playlist.
-	playlistTracks, err := client.GetPlaylistTracks(playlistID)
+	currentTracks, err := getPlaylistTracks(playlistID, client)
+	// playlistTracks, err := client.GetPlaylistTracks(playlistID)
+
+	// total := playlistTracks.Total
+	log.Printf("Playlist contains %d total tracks", len(currentTracks))
+
+	unique, err := uniqueTracks(currentTracks)
 	if err != nil {
 		return err
 	}
-	total := playlistTracks.Total
-	log.Printf("Playlist contains %d total tracks", total)
-
-	// Page through the playlist, caching all unique tracks.
-	// Note: Spotify's ID system has been shown to not be a reliable
-	// uniqueness identifier. To compare tracks start with track name,
-	// then artist name.
-	currentTracks := map[string]spotify.SimpleTrack{}
-	for page := 1; ; page++ {
-		if playlistTracks.Tracks != nil {
-			for _, playlistTrack := range playlistTracks.Tracks {
-				temp, cached := currentTracks[playlistTrack.Track.Name]
-				if !cached {
-					currentTracks[playlistTrack.Track.Name] = playlistTrack.Track.SimpleTrack
-				} else if temp.Artists[0].Name != playlistTrack.Track.SimpleTrack.Artists[0].Name {
-					currentTracks[playlistTrack.Track.Name] = playlistTrack.Track.SimpleTrack
-				}
-			}
-		}
-
-		err = client.NextPage(playlistTracks)
-		if err == spotify.ErrNoMorePages {
-			break
-		}
-		if err != nil {
-			return err
-		}
-	}
 
 	// Guard clause will exit if there are no duplicate tracks.
-	unique := len(currentTracks)
-	log.Printf("Playlist contains %d unique tracks\n", unique)
-	if unique >= total {
+	count := len(unique)
+	log.Printf("Playlist contains %d unique tracks\n", count)
+	if count >= len(currentTracks) {
 		log.Printf("Playlist does not contain any duplicates.\n")
 		return nil
 	}
 
-	// Convert the map of tracks to a slice.
+	// Convert the map of full tracks to a slice of IDs.
 	var tracks []spotify.ID
-	for _, simpleTrack := range currentTracks {
-		tracks = append(tracks, simpleTrack.ID)
+	for _, fullTrack := range unique {
+		tracks = append(tracks, fullTrack.ID)
 	}
 
 	// Clear the playlist before adding the remaining tracks.
