@@ -1,4 +1,4 @@
-package playlists
+package spotext
 
 import (
 	"log"
@@ -13,7 +13,8 @@ type GenreSearch struct {
 }
 
 // Compile initiates the given search and places the results in the given playlist.
-func Compile(s GenreSearch, client *spotify.Client) error {
+func (e *SpotifyExtender) Compile(s GenreSearch) error {
+	client := e.client
 
 	// search
 	log.Println("Searching...")

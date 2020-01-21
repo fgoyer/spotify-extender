@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fgoyer/spotify-extender/playlists"
+	"github.com/fgoyer/spotify-extender/spotext"
 	"github.com/zmb3/spotify"
 )
 
@@ -14,10 +14,12 @@ const redirectURI = "http://localhost:8080/callback"
 var (
 	auth  = spotify.NewAuthenticator(redirectURI, spotify.ScopePlaylistModifyPrivate, spotify.ScopePlaylistModifyPublic)
 	ch    = make(chan *spotify.Client)
-	state = "search"
+	state = "extender"
 
-	chillhopLofi2020 = playlists.GenreSearch{PlaylistID: "50NWpic870bRbJSwpF9PVB", Query: "year:2020 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
-	chillhopLofi2019 = playlists.GenreSearch{PlaylistID: "1e8Bk00Ah6mrX40giHTpKK", Query: "year:2019 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
+	chillhopLofi2020 = spotext.GenreSearch{PlaylistID: "50NWpic870bRbJSwpF9PVB", Query: "year:2020 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
+	chillhopLofi2019 = spotext.GenreSearch{PlaylistID: "1e8Bk00Ah6mrX40giHTpKK", Query: "year:2019 AND genre:\"chillhop\" AND genre:\"lo-fi beats\""}
+	dwTest           = spotext.GenreSearch{PlaylistID: "7FcV5iqwkqiYSfK3FxNMOe", Query: ""}
+	duplicates       = spotify.ID("7zs8x17jLEWdowTXsPKojx")
 )
 
 func main() {
@@ -41,7 +43,8 @@ func main() {
 	}
 	log.Println("You are logged in as:", user.DisplayName)
 
-	err = playlists.Compile(chillhopLofi2020, client)
+	err = spotext.RemoveDuplicates(chillhopLofi2020.PlaylistID, client)
+	// err = spotext.Compile(chillhopLofi2020, client)
 	if err != nil {
 		log.Fatal(err)
 	}

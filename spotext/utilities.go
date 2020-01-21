@@ -1,4 +1,4 @@
-package playlists
+package spotext
 
 import (
 	"github.com/zmb3/spotify"
@@ -46,6 +46,7 @@ func getPlaylistTracks(playlistID spotify.ID, client *spotify.Client) ([]spotify
 	return currentTracks, nil
 }
 
+// uniqueTracks will return from the given slice of FullTracks all of the unique tracks.
 // Note: Spotify's ID system has been shown to not be a reliable
 // uniqueness identifier. To compare tracks start with track name,
 // then artist name.
