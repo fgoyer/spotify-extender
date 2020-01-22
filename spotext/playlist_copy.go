@@ -7,13 +7,16 @@ import (
 )
 
 // CopyTracks copies unique tracks from playlistA to playlistB
-func CopyTracks(playlistA spotify.ID, playlistB spotify.ID, client *spotify.Client) error {
-	from, err := getPlaylistTracks(playlistA, client)
+func CopyTracks(playlistA string, playlistB string, client *spotify.Client) error {
+	fromID := spotify.ID(playlistA)
+	toID := spotify.ID(playlistB)
+
+	from, err := getPlaylistTracks(fromID, client)
 	if err != nil {
 		return err
 	}
 
-	to, err := getPlaylistTracks(playlistB, client)
+	to, err := getPlaylistTracks(toID, client)
 	if err != nil {
 		return err
 	}
@@ -28,7 +31,7 @@ func CopyTracks(playlistA spotify.ID, playlistB spotify.ID, client *spotify.Clie
 		for i := len(tracks) - 1; i >= 0; i-- {
 			temp = append(temp, tracks[i].ID)
 			if len(temp) == 100 || i == 0 {
-				snapshot, err := client.AddTracksToPlaylist(playlistB, temp...)
+				snapshot, err := client.AddTracksToPlaylist(toID, temp...)
 				if err != nil {
 					return err
 				}
