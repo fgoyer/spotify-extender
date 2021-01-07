@@ -13,20 +13,18 @@ type GenreSearch struct {
 }
 
 // Compile initiates the given search and places the results in the given playlist.
-func (e *SpotifyExtender) Compile(s GenreSearch) error {
-	client := e.client
-
+func Compile(s GenreSearch, client *spotify.Client) error {
 	// search
 	log.Println("Searching...")
 	results, err := client.Search(s.Query, spotify.SearchTypeTrack)
 	if err != nil {
 		return err
 	}
-
+	log.Println("Searching complete, compiling tracks...")
 	tracks := make([]spotify.FullTrack, 0)
 	// Traverse the pages of the search results. Spotify returns 20 results per page,
-	// let's enforce a strict 5,000 track (250 page) limit per search.
-	for page := 1; page <= 250; page++ {
+	// let's enforce a strict 2,000 track (99 page) limit per search.
+	for page := 1; page < 100; page++ {
 		// handle track results
 		if results.Tracks != nil {
 			for _, item := range results.Tracks.Tracks {
@@ -42,7 +40,7 @@ func (e *SpotifyExtender) Compile(s GenreSearch) error {
 			return err
 		}
 	}
-
+	log.Println("Tracks compiled, retrieving playlist...")
 	// Retrieve the tracks currently on the playlist.
 	currentTracks, err := getPlaylistTracks(s.PlaylistID, client)
 	if err != nil {
