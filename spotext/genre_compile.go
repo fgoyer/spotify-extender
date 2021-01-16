@@ -14,6 +14,12 @@ type GenreSearch struct {
 
 // Compile initiates the given search and places the results in the given playlist.
 func Compile(s GenreSearch, client *spotify.Client) error {
+	// Check that the given playlist exists
+	_, err := client.GetPlaylist(s.PlaylistID)
+	if err != nil {
+		return err
+	}
+
 	// search
 	log.Println("Searching...")
 	results, err := client.Search(s.Query, spotify.SearchTypeTrack)
