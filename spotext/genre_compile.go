@@ -17,6 +17,7 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 	// Check that the given playlist exists
 	_, err := client.GetPlaylist(s.PlaylistID)
 	if err != nil {
+		log.Println("Error getting playlist")
 		return err
 	}
 
@@ -24,18 +25,17 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 	log.Println("Searching...")
 	results, err := client.Search(s.Query, spotify.SearchTypeTrack)
 	if err != nil {
+		log.Println("Error during search")
 		return err
 	}
 	log.Println("Searching complete, compiling tracks...")
 	tracks := make([]spotify.FullTrack, 0)
 	// Traverse the pages of the search results. Spotify returns 20 results per page,
-	// let's enforce a strict 2,000 track (99 page) limit per search.
-	for page := 1; page < 100; page++ {
+	// let's enforce a strict 1,000 track (49 page) limit per search.
+	for page := 1; page < 50; page++ {
 		// handle track results
 		if results.Tracks != nil {
-			for _, item := range results.Tracks.Tracks {
-				tracks = append(tracks, item)
-			}
+			tracks = append(tracks, results.Tracks.Tracks...)
 		}
 
 		err = client.NextTrackResults(results)
@@ -50,6 +50,7 @@ func Compile(s GenreSearch, client *spotify.Client) error {
 	// Retrieve the tracks currently on the playlist.
 	currentTracks, err := getPlaylistTracks(s.PlaylistID, client)
 	if err != nil {
+		log.Println("Error getting current tracks")
 		return err
 	}
 	log.Printf("Playlist has %d total tracks", len(currentTracks))

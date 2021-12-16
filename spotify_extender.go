@@ -59,7 +59,7 @@ func main() {
 
 	err = spotext.Compile(genreSearch, client)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%+v", err)
 	}
 
 	err = spotext.RemoveDuplicates(genreSearch.PlaylistID, client)
